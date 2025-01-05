@@ -1,7 +1,9 @@
 from pathlib import Path
 import yaml
 import re
-from pydra import Config, REQUIRED
+from pydantic import BaseModel as Config
+from typing import ClassVar
+REQUIRED = ...
 import signal
 
 def load_yaml(path: Path):
@@ -81,26 +83,26 @@ def extract_first_code(output_string: str):
 
 
 class GenerateScriptConfig(Config):
-    model = REQUIRED
-    save_dir = REQUIRED
+    model: ClassVar = REQUIRED
+    save_dir: ClassVar = REQUIRED
 
-    num_workers = None
-    gpus = None
-    vllm_args = None
-    vllm_port = 8000
+    num_workers: int = None
+    gpus: int = None
+    vllm_args: str = None
+    vllm_port: int = 8000
 
-    seed = 0
-    limit = None
-    offset = None
-    stride = None
+    seed: int = 0
+    limit: int = None
+    offset: int = None
+    stride: int = None
 
-    num_few_shot = 2
-    max_tokens = 1024
-    stop_strings = []
-    num_samples = 2
-    batch_size = 2
-    top_p = 0.95
-    temperature = 0.6
+    num_few_shot: int = 2
+    max_tokens: int = 1024
+    stop_strings: list = []
+    num_samples: int = 2
+    batch_size: int = 2
+    top_p: float = 0.95
+    temperature: float = 0.6
 
     def finalize(self):
         self.save_dir = Path(self.save_dir)

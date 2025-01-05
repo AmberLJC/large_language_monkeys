@@ -23,6 +23,7 @@ We use two different conda environments for this project, as the lean-dojo versi
 ```
 conda create -n llmonk-minif2f python=3.9.19
 pip install -r requirements_minif2f.txt
+pip install -e . 
 ```
 To run evaluation on this dataset, we additionally need to install lean4. To do this, follow the installation instructions for your system according to [this website](https://leanprover-community.github.io/get_started.html).
 
@@ -44,6 +45,7 @@ Choose 2, and change the default toolchain to: `4.3.0-rc2`.
 ```
 conda create -n llmonk python=3.11.8
 pip install -r requirements.txt
+pip install -e . 
 ```
 
 ## Repository Structure
