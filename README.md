@@ -18,6 +18,12 @@ We use [vLLM](https://docs.vllm.ai/en/latest/index.html) to do inference, so any
 
 We use two different conda environments for this project, as the lean-dojo version we use requires Python 3.9.19.
 
+### Setup your LLM API  
+```
+export AZURE_API_KEY="your_api_key_here"
+export AZURE_ORGANIZATION="your_organization_here"
+```
+
 ### Environment for MiniF2F-MATH
 
 ```

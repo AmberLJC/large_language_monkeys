@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 from openai import AzureOpenAI
 import argparse
+import os
 
 @dataclass
 class InferenceConfig:
@@ -54,11 +55,11 @@ def run_api_inference(item, config: InferenceConfig):
     prompt = few_shot_prompt + f"Question: {item['question']}\nAnswer:" 
     
     client = AzureOpenAI(
-        api_key='5fd13c8dd056405bb1835ad0bf0adf3f',
+        api_key=os.getenv('AZURE_API_KEY'),
         azure_endpoint='https://api.umgpt.umich.edu/azure-openai-api',
         # api_version='2023-03-15-preview',
         api_version="2024-02-01",
-        organization='499023',
+        organization=os.getenv('AZURE_ORGANIZATION'),
     ) 
  
 
@@ -69,7 +70,6 @@ def run_api_inference(item, config: InferenceConfig):
             response = client.chat.completions.create(
                 model=config.model_name,
                 messages = [
-                    {"role": "system","content": "You are a great mathematician."},
                     {"role": "user","content": prompt},
                 ],
                 max_tokens=config.max_tokens,
