@@ -20,31 +20,8 @@ We use two different conda environments for this project, as the lean-dojo versi
 
 ### Setup your LLM API  
 ```
-export AZURE_API_KEY="your_api_key_here"
-export AZURE_ORGANIZATION="your_organization_here"
+source env.sh
 ```
-
-### Environment for MiniF2F-MATH
-
-```
-conda create -n llmonk-minif2f python=3.9.19
-pip install -r requirements_minif2f.txt
-pip install -e . 
-```
-To run evaluation on this dataset, we additionally need to install lean4. To do this, follow the installation instructions for your system according to [this website](https://leanprover-community.github.io/get_started.html).
-
-When prompted with 
-```
-Current installation options:
-
-  default toolchain: stable
-  modify PATH variable: yes
-
-1) Proceed with installation (default)
-2) Customize installation
-3) Cancel installation
-```
-Choose 2, and change the default toolchain to: `4.3.0-rc2`.
 
 ### Evironment for everything except MiniF2F-MATH
 

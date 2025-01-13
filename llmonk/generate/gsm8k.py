@@ -35,6 +35,8 @@ def save_yaml(path: Path, data: dict):
     with open(path, 'w') as f:
         yaml.dump(data, f)
 
+    print(f"Saving data to {path}")
+    print(f"Data: {data}")
 def get_few_shot_prompt(item):
     few_shot_items = item["few_shot_items"]
     few_shot_pieces = []
@@ -48,18 +50,17 @@ def get_few_shot_prompt(item):
 def run_api_inference(item, config: InferenceConfig):
     save_dir = Path(config.save_dir)
     outpath = save_dir / f"{item['id']}.yaml"
-    if outpath.exists():
-        return
+
 
     few_shot_prompt = get_few_shot_prompt(item)
     prompt = few_shot_prompt + f"Question: {item['question']}\nAnswer:" 
     
     client = AzureOpenAI(
-        api_key=os.getenv('AZURE_API_KEY'),
+        api_key=os.getenv('OPENAI_API_KEY'),
         azure_endpoint='https://api.umgpt.umich.edu/azure-openai-api',
         # api_version='2023-03-15-preview',
         api_version="2024-02-01",
-        organization=os.getenv('AZURE_ORGANIZATION'),
+        organization=os.getenv('OPENAI_ORGANIZATION'),
     ) 
  
 
