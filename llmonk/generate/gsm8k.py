@@ -36,7 +36,7 @@ def save_yaml(path: Path, data: dict):
         yaml.dump(data, f)
 
     print(f"Saving data to {path}")
-    print(f"Data: {data}")
+    # print(f"Data: {data}")
 def get_few_shot_prompt(item):
     few_shot_items = item["few_shot_items"]
     few_shot_pieces = []
@@ -79,14 +79,14 @@ def run_api_inference(item, config: InferenceConfig):
                 top_p=config.top_p,
                 stop=config.stop_strings,
             )
-            print('====================')
-            print(prompt)
+            # print('====================')
+            # print(prompt)
 
             batch_samples = [choice.message.content for choice in response.choices]
             samples.extend(batch_samples)
             
-            print(f'Response: {batch_samples}') 
-            print('====================')
+            # print(f'Response: {batch_samples}') 
+            # print('====================')
             
         except Exception as e:
             print(f"Error generating completion for item {item['id']}: {str(e)}")
@@ -176,6 +176,7 @@ if __name__ == "__main__":
         num_workers=args.num_workers,
         limit=args.limit,
         model_name=args.model_name,
+        save_dir=args.save_dir,
     )
 
     main(custom_config)
