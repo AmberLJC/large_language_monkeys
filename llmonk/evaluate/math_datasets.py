@@ -87,6 +87,7 @@ def process_sample(config: EvalConfig):
         corrects.append(correct)
 
     result["is_corrects"] = corrects
+    result['coverage'] = sum(corrects) > 0
     save_yaml(config.save_path, result)
 
 def get_tasks(config: EvalConfig) -> list:
