@@ -162,7 +162,7 @@ if __name__ == "__main__":
     parser.add_argument("--temperature", type=float, default=0.8, help="Temperature for sampling.")
     parser.add_argument("--num_few_shot", type=int, default=2, help="Number of few-shot examples.")
     parser.add_argument("--num_workers", type=int, default=4, help="Number of workers for parallel processing.")
-    parser.add_argument("--limit", type=int, default=10, help="Limit on the number of inputs to process.")
+    parser.add_argument("--limit", type=int, help="Limit on the number of inputs to process.")
     parser.add_argument("--save-dir", type=str, default="./logs/gsm8k_samples", help="Directory to save generated samples.")
                         
     parser.add_argument("--model_name", type=str, default="gpt-4o", help="Model name for inference.")
