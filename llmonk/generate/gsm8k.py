@@ -66,9 +66,9 @@ def run_api_inference(item, config: InferenceConfig):
     if config.num_samples < config.batch_size:
         config.batch_size = config.num_samples
 
-    print(f'Start {config.num_samples // config.batch_size} generation for item {item["id"]}.') 
+    # print(f'Start {config.num_samples // config.batch_size} generation for item {item["id"]}.') 
     samples = []
-    for _ in tqdm(range(config.num_samples // config.batch_size), desc=f"Item {item['id']}"):
+    for _ in range(config.num_samples // config.batch_size):
         try:
             response = client.chat.completions.create(
                 model=config.model_name,
@@ -139,17 +139,11 @@ def main(config: InferenceConfig = InferenceConfig()):
         multiprocessing.set_start_method('spawn', force=True)
         
         with multiprocessing.Pool(config.num_workers) as pool:
-            predictions = list(
-                tqdm(
-                    pool.imap_unordered(go_func, test_dataset),
-                    total=len(test_dataset),
-                    desc="Processing dataset"
-                )
-            )
+            predictions = list(pool.imap_unordered(go_func, test_dataset))
     else:
         # Single process execution
         predictions = []
-        for item in tqdm(test_dataset, desc="Processing dataset"):
+        for item in test_dataset:
             predictions.append(go_func(item))
 
 if __name__ == "__main__":
