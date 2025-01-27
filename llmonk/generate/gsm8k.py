@@ -57,11 +57,11 @@ def run_api_inference(item, config: InferenceConfig):
     
     client = AzureOpenAI(
         api_key=os.getenv('OPENAI_API_KEY'),
-        azure_endpoint='https://api.umgpt.umich.edu/azure-openai-api',
+        azure_endpoint=os.getenv('OPENAI_API_BASE'),
         # api_version='2023-03-15-preview',
-        api_version="2024-02-01",
+        api_version=os.getenv('API_VERSION'),
         organization=os.getenv('OPENAI_ORGANIZATION'),
-    ) 
+    )
     
     if config.num_samples < config.batch_size:
         config.batch_size = config.num_samples

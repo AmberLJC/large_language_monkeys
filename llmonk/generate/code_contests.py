@@ -1,17 +1,43 @@
 import torch
 from datasets import load_dataset
 from tqdm import tqdm
-import pydra
 import multiprocessing
 import random
+from openai import AzureOpenAI
 import requests
 from functools import partial
-
-from llmonk.utils import save_yaml, GenerateScriptConfig
-from llmonk.generate.vllm_utils import vllm_manager
+import yaml
+from pathlib import Path
+from dataclasses import dataclass
+from typing import List, Optional
+import argparse
+from typing import Optional
 
 PYTHON3_LANGUAGE_ID = 3
 
+@dataclass
+class InferenceConfig:
+    save_dir: str = './logs/code_contests_samples'
+    vllm_port: int = 8000
+    num_samples: int = 1
+    batch_size: int = 1
+    model_name: str = 'gpt-4o'
+    max_tokens: int = 1024
+    temperature: float = 0.7
+    top_p: float = 1.0
+    stop_strings: List[str] = None
+    num_few_shot: int = 5
+    seed: int = 42
+    limit: Optional[int] = None
+    stride: Optional[int] = None
+    offset: Optional[int] = None
+    num_workers: Optional[int] = None
+
+def save_yaml(path: Path, data: dict):
+    with open(path, 'w') as f:
+        yaml.dump(data, f)
+
+    print(f"Saving data to {path}")
 
 def get_python_solutions(
     item,
@@ -91,13 +117,19 @@ def get_test_cases(item):
     }
 
 
-def run_inference(item, config: GenerateScriptConfig):
+def run_api_inference(item, config: InferenceConfig):
     outpath = config.save_dir / f"{item['name']}.yaml"
     if outpath.exists():
         return
 
     prompt = get_prompt(item)
-    url = f"http://localhost:{config.vllm_port}/generate"
+    client = AzureOpenAI(
+        api_key=os.getenv('OPENAI_API_KEY'),
+        azure_endpoint=os.getenv('OPENAI_API_BASE'),
+        # api_version='2023-03-15-preview',
+        api_version=os.getenv('API_VERSION'),
+        organization=os.getenv('OPENAI_ORGANIZATION'),
+    ) 
 
     num_samples = config.num_samples
     batch_size = config.batch_size
@@ -106,19 +138,20 @@ def run_inference(item, config: GenerateScriptConfig):
 
     samples = []
     for _ in tqdm(range(num_samples // batch_size), desc=f"Item {item['name']}"):
+        response = client.chat.completions.create(
+                model=config.model_name,
+                messages = [
+                    {"role": "user","content": prompt},
+                ],
+                max_tokens=config.max_tokens,
+                n=config.batch_size,
+                temperature=config.temperature,
+                top_p=config.top_p,
+                stop=config.stop_strings,
+        )
 
-        body = {
-            "prompt": prompt,
-            "max_tokens": config.max_tokens,
-            "n": batch_size,
-            "temperature": config.temperature,
-            "top_p": config.top_p,
-            "include_stop_str_in_output": True,
-            "stop": config.stop_strings,
-        }
-        response = requests.post(url, json=body)
-        respj = response.json()
-        samples.extend(respj["text"])
+        batch_samples = [choice.message.content for choice in response.choices]
+        samples.extend(batch_samples)
 
     out = {
         "prompt": prompt,
@@ -130,11 +163,8 @@ def run_inference(item, config: GenerateScriptConfig):
 
     save_yaml(outpath, out)
 
-
-@torch.no_grad()
-@pydra.main(GenerateScriptConfig)
 def main(
-    config: GenerateScriptConfig,
+    config: InferenceConfig = InferenceConfig(),
 ):
     dataset = load_dataset("deepmind/code_contests")
     few_shot_dataset = [p for p in dataset["train"]]
@@ -180,23 +210,20 @@ def main(
 
     print(f"Total number of items to process: {len(no_image_test_dataset)}")
 
-    with vllm_manager(config) as vllm_port:
-        config.vllm_port = vllm_port
+    go_func = partial(run_api_inference, config=config)
 
-        go_func = partial(run_inference, config=config)
-
-        if config.num_workers not in [0, None]:
-            with multiprocessing.Pool(config.num_workers) as pool:
-                predictions = list(
-                    tqdm(
-                        pool.imap_unordered(go_func, no_image_test_dataset),
-                        total=len(no_image_test_dataset),
-                    )
+    if config.num_workers not in [0, None]:
+        with multiprocessing.Pool(config.num_workers) as pool:
+            predictions = list(
+                tqdm(
+                    pool.imap_unordered(go_func, no_image_test_dataset),
+                    total=len(no_image_test_dataset),
                 )
-        else:
-            predictions = []
-            for item in tqdm(no_image_test_dataset):
-                predictions.append(go_func(item))
+            )
+    else:
+        predictions = []
+        for item in tqdm(no_image_test_dataset):
+            predictions.append(go_func(item))
 
 
 if __name__ == "__main__":
